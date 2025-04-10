@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
-import { ChevronLeft, ChevronRight, BookOpen } from "lucide-react"
+import { ChevronLeft, ChevronRight, BookOpen, Loader2 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { useMobile } from "@/hooks/use-mobile"
 import { useLanguage } from "@/components/language-provider"
@@ -24,6 +24,7 @@ export default function ChapterPage({ params }: { params: Promise<{ id: string }
   const [readingProgress, setReadingProgress] = useState(0)
   const [showChoices, setShowChoices] = useState(false)
   const [selectedChoice, setSelectedChoice] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState(false)
   const [chapters, setChapters] = useState<any[]>([])
   const [enChapters, setEnChapters] = useState<any[]>([])
   const [zhChapters, setZhChapters] = useState<any[]>([])
@@ -111,6 +112,7 @@ export default function ChapterPage({ params }: { params: Promise<{ id: string }
 
   const handleChoice = (choice: string) => {
     setSelectedChoice(choice)
+    setIsLoading(true)
     // Save choice to localStorage
     const choices = JSON.parse(localStorage.getItem("storyChoices") || "{}")
     choices[`chapter${chapterId}`] = choice
@@ -124,7 +126,10 @@ export default function ChapterPage({ params }: { params: Promise<{ id: string }
     })
 
     // Continue after a short delay
-    setTimeout(handleContinue, 1500)
+    setTimeout(() => {
+      setIsLoading(false)
+      handleContinue()
+    }, 1500)
   }
 
   if (!chapter) {
@@ -225,17 +230,24 @@ export default function ChapterPage({ params }: { params: Promise<{ id: string }
                       <Button
                         key={index}
                         variant={selectedChoice === choice ? "default" : "outline"}
-                        className={`p-6 h-auto text-left justify-start w-full whitespace-normal break-words ${
-                          selectedChoice === choice ? "bg-emerald-600 hover:bg-emerald-700 text-white" : ""
+                        className={`p-6 h-auto text-left justify-start w-full whitespace-normal break-words transition-all duration-300 transform hover:scale-105 active:scale-95 relative ${
+                          selectedChoice === choice 
+                            ? "bg-emerald-600 hover:bg-emerald-700 text-white ring-2 ring-emerald-500 ring-offset-2" 
+                            : "hover:bg-slate-100 dark:hover:bg-slate-800"
                         }`}
                         onClick={() => handleChoice(choice)}
-                        disabled={!!selectedChoice}
+                        disabled={!!selectedChoice || isLoading}
                       >
-                        <div>
-                          <div>{choice}</div>
-                          {zhChapter.choices && zhChapter.choices[index] && (
-                            <div className="mt-1 text-sm opacity-80">{zhChapter.choices[index]}</div>
+                        <div className="flex items-center">
+                          {selectedChoice === choice && isLoading && (
+                            <Loader2 className="w-5 h-5 mr-2 animate-spin" />
                           )}
+                          <div>
+                            <div>{choice}</div>
+                            {zhChapter.choices && zhChapter.choices[index] && (
+                              <div className="mt-1 text-sm opacity-80">{zhChapter.choices[index]}</div>
+                            )}
+                          </div>
                         </div>
                       </Button>
                     ))}
@@ -279,13 +291,20 @@ export default function ChapterPage({ params }: { params: Promise<{ id: string }
                       <Button
                         key={index}
                         variant={selectedChoice === choice ? "default" : "outline"}
-                        className={`p-6 h-auto text-left justify-start w-full whitespace-normal break-words ${
-                          selectedChoice === choice ? "bg-emerald-600 hover:bg-emerald-700 text-white" : ""
+                        className={`p-6 h-auto text-left justify-start w-full whitespace-normal break-words transition-all duration-300 transform hover:scale-105 active:scale-95 relative ${
+                          selectedChoice === choice ? "bg-emerald-600 hover:bg-emerald-700 text-white ring-2 ring-emerald-500 ring-offset-2" : "hover:bg-slate-100 dark:hover:bg-slate-800"
                         }`}
                         onClick={() => handleChoice(choice)}
-                        disabled={!!selectedChoice}
+                        disabled={!!selectedChoice || isLoading}
                       >
-                        {choice}
+                        <div className="flex items-center">
+                          {selectedChoice === choice && isLoading && (
+                            <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                          )}
+                          <div>
+                            {choice}
+                          </div>
+                        </div>
                       </Button>
                     ))}
                   </div>

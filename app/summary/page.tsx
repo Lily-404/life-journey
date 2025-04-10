@@ -99,57 +99,122 @@ export default function SummaryPage() {
   const generateSummary = () => {
     // Default summary if no choices were made
     if (Object.keys(choices).length === 0) {
-      return t("default_summary")
+      return isBilingual ? (
+        <>
+          <p className="mb-4">{tBilingual("default_summary").en}</p>
+          <p>{tBilingual("default_summary").zh}</p>
+        </>
+      ) : t("default_summary")
     }
 
     // Personalized summary based on choices
-    let summary =
-      language === "en" ? "Emma's journey was shaped by the choices she made. " : "艾玛的旅程由她做出的选择塑造。"
+    let enSummary = ""
+    let zhSummary = ""
+    let endingType = "balanced" // Default ending type
 
-    if (choices.chapter2) {
-      if (language === "en") {
-        summary += choices.chapter2.includes("accept")
-          ? "Her decision to accept Sophia's mentorship opened doors to artistic growth. "
-          : "Though initially hesitant about Sophia's guidance, she eventually found her own path. "
-      } else {
-        summary += choices.chapter2.includes("接受")
-          ? "她接受索菲亚指导的决定为艺术成长打开了大门。"
-          : "尽管最初对索菲亚的指导犹豫不决，她最终找到了自己的道路。"
-      }
+    // Analyze choices to determine the type of ending
+    const choicesArray = Object.values(choices)
+    const careerChoices = choicesArray.filter(choice => 
+      choice.includes("career") || choice.includes("art") || choice.includes("工作") || choice.includes("艺术")
+    ).length
+    const relationshipChoices = choicesArray.filter(choice => 
+      choice.includes("relationship") || choice.includes("love") || choice.includes("关系") || choice.includes("爱情")
+    ).length
+
+    if (careerChoices > relationshipChoices + 1) {
+      endingType = "career"
+    } else if (relationshipChoices > careerChoices + 1) {
+      endingType = "relationship"
     }
 
-    if (choices.chapter4) {
-      if (language === "en") {
-        summary += choices.chapter4.includes("pursue")
-          ? "Her courage to pursue a relationship with James led to both creative collaboration and personal fulfillment. "
-          : "She prioritized her artistic development, keeping relationships at a distance. "
-      } else {
-        summary += choices.chapter4.includes("追求")
-          ? "她勇敢地追求与詹姆斯的关系，带来了创意合作和个人满足感。"
-          : "她优先考虑自己的艺术发展，与关系保持距离。"
+    // Generate English summary
+    if (endingType === "career") {
+      enSummary = "Emma's journey was defined by her unwavering dedication to her artistic career. "
+      if (choices.chapter2?.includes("accept")) {
+        enSummary += "Under Sophia's mentorship, she developed a unique artistic style that captivated audiences. "
       }
-    }
-
-    if (choices.chapter6) {
-      if (language === "en") {
-        summary += choices.chapter6.includes("separate")
-          ? "The painful decision to separate from James allowed them both to grow independently before finding their way back to each other. "
-          : "She chose to maintain their connection despite the distance, balancing personal ambition with relationship. "
-      } else {
-        summary += choices.chapter6.includes("分开")
-          ? "与詹姆斯分开的痛苦决定让他们在重新找到彼此之前都能独立成长。"
-          : "她选择了尽管有距离也要保持联系，平衡个人抱负与关系。"
+      if (choices.chapter4?.includes("pursue")) {
+        enSummary += "While she experienced love with James, her art remained her true passion. "
       }
-    }
-
-    if (language === "en") {
-      summary +=
-        "Through it all, Emma discovered that life's journey isn't about avoiding detours but finding meaning in every path taken."
+      if (choices.chapter6?.includes("separate")) {
+        enSummary += "The difficult decision to focus on her career led to international recognition and exhibitions. "
+      }
+      enSummary += "In the end, Emma became a celebrated artist, finding fulfillment in her creative expression and the impact of her work on others."
+    } else if (endingType === "relationship") {
+      enSummary = "Emma's journey was marked by deep connections and meaningful relationships. "
+      if (choices.chapter2?.includes("accept")) {
+        enSummary += "Sophia's guidance helped her understand the importance of emotional expression in both life and art. "
+      }
+      if (choices.chapter4?.includes("pursue")) {
+        enSummary += "Her relationship with James became a source of inspiration and mutual growth. "
+      }
+      if (choices.chapter6?.includes("separate")) {
+        enSummary += "Though they went their separate ways, the lessons learned from their relationship enriched her art. "
+      }
+      enSummary += "Ultimately, Emma discovered that the most profound art comes from the heart, and her relationships became the canvas of her life's masterpiece."
     } else {
-      summary += "通过这一切，艾玛发现人生旅程不是关于避免弯路，而是在每条所走的路上找到意义。"
+      enSummary = "Emma's journey was a delicate balance between artistic ambition and personal connections. "
+      if (choices.chapter2?.includes("accept")) {
+        enSummary += "Sophia's mentorship helped her navigate both the technical and emotional aspects of art. "
+      }
+      if (choices.chapter4?.includes("pursue")) {
+        enSummary += "Her relationship with James brought new perspectives to her work while maintaining her artistic integrity. "
+      }
+      if (choices.chapter6?.includes("separate")) {
+        enSummary += "The time apart allowed both her art and her relationship to evolve in unexpected ways. "
+      }
+      enSummary += "In the end, Emma found that true success lies in harmonizing one's passions with meaningful connections."
     }
 
-    return summary
+    // Generate Chinese summary
+    if (endingType === "career") {
+      zhSummary = "艾玛的旅程由她对艺术事业的坚定奉献所定义。"
+      if (choices.chapter2?.includes("接受")) {
+        zhSummary += "在索菲亚的指导下，她发展出了一种独特的艺术风格，吸引了众多观众。"
+      }
+      if (choices.chapter4?.includes("追求")) {
+        zhSummary += "虽然她与詹姆斯有过爱情，但艺术始终是她真正的热情所在。"
+      }
+      if (choices.chapter6?.includes("分开")) {
+        zhSummary += "专注于事业的决定最终带来了国际认可和展览机会。"
+      }
+      zhSummary += "最终，艾玛成为了一位备受赞誉的艺术家，在创作表达和作品对他人的影响中找到了满足。"
+    } else if (endingType === "relationship") {
+      zhSummary = "艾玛的旅程充满了深厚的情感和有意义的关系。"
+      if (choices.chapter2?.includes("接受")) {
+        zhSummary += "索菲亚的指导帮助她理解了情感表达在生活和艺术中的重要性。"
+      }
+      if (choices.chapter4?.includes("追求")) {
+        zhSummary += "她与詹姆斯的关系成为了灵感和共同成长的源泉。"
+      }
+      if (choices.chapter6?.includes("分开")) {
+        zhSummary += "虽然他们分道扬镳，但从这段关系中获得的教训丰富了她的艺术。"
+      }
+      zhSummary += "最终，艾玛发现最深刻的艺术来自内心，而她的人际关系成为了她人生杰作的画布。"
+    } else {
+      zhSummary = "艾玛的旅程在艺术抱负和人际关系之间保持着微妙的平衡。"
+      if (choices.chapter2?.includes("接受")) {
+        zhSummary += "索菲亚的指导帮助她驾驭了艺术的技术和情感层面。"
+      }
+      if (choices.chapter4?.includes("追求")) {
+        zhSummary += "她与詹姆斯的关系为她的作品带来了新的视角，同时保持了她的艺术完整性。"
+      }
+      if (choices.chapter6?.includes("分开")) {
+        zhSummary += "分开的时光让她的艺术和关系都以意想不到的方式发展。"
+      }
+      zhSummary += "最终，艾玛发现真正的成功在于将个人热情与有意义的关系和谐统一。"
+    }
+
+    if (isBilingual) {
+      return (
+        <>
+          <p className="mb-4">{enSummary}</p>
+          <p className="text-slate-600 dark:text-slate-400">{zhSummary}</p>
+        </>
+      )
+    }
+
+    return language === "en" ? enSummary : zhSummary
   }
 
   return (
